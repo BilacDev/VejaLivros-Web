@@ -1,0 +1,49 @@
+/* Colors
+-------------------------- */
+
+$--color-white: #fff !default;
+$--color-black: #000 !default;
+
+$--color-cloudy-blue: #d1dbe2 !default;
+
+$--color-primary: #d1d1d1 !default;
+$--color-primary-light-1: mix($--color-white, $--color-primary, 10%) !default;
+$--color-primary-light-2: mix($--color-white, $--color-primary, 20%) !default;
+$--color-primary-light-3: mix($--color-white, $--color-primary, 30%) !default;
+$--color-primary-light-4: mix($--color-white, $--color-primary, 40%) !default;
+$--color-primary-light-5: mix($--color-white, $--color-primary, 50%) !default;
+$--color-primary-light-6: mix($--color-white, $--color-primary, 60%) !default;
+$--color-primary-light-7: mix($--color-white, $--color-primary, 70%) !default;
+$--color-primary-light-8: mix($--color-white, $--color-primary, 80%) !default;
+$--color-primary-light-9: mix($--color-white, $--color-primary, 90%) !default;
+
+$--color-secondary: #ff9300 !default;
+$--color-secondary-light-1: mix($--color-white, $--color-secondary, 10%) !default;
+$--color-secondary-light-2: mix($--color-white, $--color-secondary, 20%) !default;
+$--color-secondary-light-3: mix($--color-white, $--color-secondary, 30%) !default;
+$--color-secondary-light-4: mix($--color-white, $--color-secondary, 40%) !default;
+$--color-secondary-light-5: mix($--color-white, $--color-secondary, 50%) !default;
+$--color-secondary-light-6: mix($--color-white, $--color-secondary, 60%) !default;
+$--color-secondary-light-7: mix($--color-white, $--color-secondary, 70%) !default;
+$--color-secondary-light-8: mix($--color-white, $--color-secondary, 80%) !default;
+$--color-secondary-light-9: mix($--color-white, $--color-secondary, 90%) !default;
+
+$--color-success: #46E986 !default;
+$--color-warning: #FFC900 !default;
+$--color-danger: #FF4B54 !default;
+$--color-info: #72cbff !default;
+
+$--color-success-light: mix($--color-white, $--color-success, 80%) !default;
+$--color-warning-light: mix($--color-white, $--color-warning, 80%) !default;
+$--color-danger-light: mix($--color-white, $--color-danger, 80%) !default;
+$--color-info-light: mix($--color-white, $--color-info, 80%) !default;
+
+$--color-success-lighter: mix($--color-white, $--color-success, 90%) !default;
+$--color-warning-lighter: mix($--color-white, $--color-warning, 90%) !default;
+$--color-danger-lighter: mix($--color-white, $--color-danger, 90%) !default;
+$--color-info-lighter: mix($--color-white, $--color-info, 90%) !default;
+
+$--color-text-primary: #343c4b !default;
+$--color-text-regular: #424242 !default;
+$--color-text-secondary: #adadad !default;
+$--color-text-placeholder: $--color-text-regular !default;
