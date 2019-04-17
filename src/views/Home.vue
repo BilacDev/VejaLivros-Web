@@ -73,11 +73,8 @@ export default {
     axios
       .get('http://34.73.84.212/api/v1/books')
       .then(response => response.data.data)
-      .then(books => (this.booksList = books))
+      .then(books => (this.booksList = books)(this.filteredBooks = books))
       .catch(erro => console.log('Deu merda aqui', erro))
-  },
-  created () {
-    this.filteredBooks = this.booksList.slice(0)
   },
   watch: {
     searchParam (term) {
