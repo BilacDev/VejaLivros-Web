@@ -2,7 +2,7 @@
     "apps": [
         {
             "name": "VejaLivros-web",
-            "script": "./src/main.js",
+            "script": "index.html",
             "watch": false,
             "merge_logs": true,
             "autorestart": true,
