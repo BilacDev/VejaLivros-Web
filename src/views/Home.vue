@@ -47,8 +47,17 @@
         <el-form-item label="Nome" prop="title">
           <el-input v-model="activeBook.title" />
         </el-form-item>
-        <el-form-item label="Autor" prop="author.name">
-          <el-input v-model="activeBook.author.name" />
+        <el-form-item label="Autor" prop="id_author">
+          <!-- <el-col :span="24"> -->
+            <el-select v-model="activeBook.id_author" placeholder="Selecione um">
+              <el-option
+                v-for="author in authors"
+                :key="author.id"
+                :label="author.name"
+                :value="author.id">
+              </el-option>
+            </el-select>
+          <!-- </el-col> -->
         </el-form-item>
         <el-form-item label="Palavras Chave" prop="keywords">
           <el-input v-model="activeBook.keywords" />
@@ -76,6 +85,12 @@ export default {
   name: 'home',
   data () {
     return {
+      authors: [
+        { name: 'Machado de Assis', id: 2 },
+        { name: 'Carlos Drummond de Andrade', id: 3 },
+        { name: 'Clarice Lispector', id: 4 },
+        { name: 'Ariano Suassuna', id: 5 }
+      ],
       searchParam: '',
       editingTitle: '',
       activeModalText: '',
@@ -89,15 +104,16 @@ export default {
         author: { name: '' },
         keywords: '',
         text: '',
-        id: ''
+        id: '',
+        id_author: 2
       },
       rules: {
         title: [
           { required: true, message: 'Insira um título para o livro', trigger: 'submit' }
         ],
-        author: { name: [
+        id_author: [
           { required: true, message: 'Insira um autor para o livro', trigger: 'submit' }
-        ] },
+        ],
         keywords: [
           { required: true, message: 'insira pelomenos uma palavra chave', trigger: 'submit' }
         ],
@@ -139,6 +155,7 @@ export default {
       this.activeBook.keywords = ''
       this.activeBook.text = ''
       this.activeBook.id = ''
+      this.activeBook.id_author = 2
       this.visibleEdit = true
     },
     includeBook () {
@@ -179,6 +196,7 @@ export default {
       this.activeBook.keywords = this.booksList[index].keywords
       this.activeBook.text = this.booksList[index].text
       this.activeBook.id = this.booksList[index].id
+      this.activeBook.id_author = this.booksList[index].id_author
       this.visibleEdit = true
     },
     confirmEdition () {
@@ -307,5 +325,11 @@ export default {
 }
 .el-dialog {
   background-color: #fff !important;
+}
+.el-select {
+  display: block !important;
+}
+.el-input__suffix {
+  height: 150% !important;
 }
 </style>
