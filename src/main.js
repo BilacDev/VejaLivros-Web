@@ -2,19 +2,17 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 
-// Plugin
 import './plugins/element.js'
-var VueScrollTo = require('vue-scrollto')
-
-// css
 import '@/styles/core.scss'
 import '@/styles/transitions.scss'
 
+var VueScrollTo = require('vue-scrollto')
+
 Vue.config.productionTip = false
 Vue.use(VueScrollTo, {
-  container: "body",
+  container: 'body',
   duration: 800,
-  easing: "ease",
+  easing: 'ease',
   offset: 0,
   force: true,
   cancelable: true,

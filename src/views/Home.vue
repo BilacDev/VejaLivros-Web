@@ -5,9 +5,11 @@
       <el-input placeholder="Busque por um livro" v-model="searchParam" class="view-home__input">
         <el-button slot="append" icon="el-icon-search" v-scroll-to="'#table-list'" />
       </el-input>
+      <div class="view-home__add-button">
+        <el-button type="primary" @click="addBook()" icon="el-icon-plus">Adcionar um Livro</el-button>
+      </div>
     </div>
     <el-table
-      @row-click="readBook"
       :data="filteredBooks"
       :stripe="true"
       id="table-list"
@@ -15,13 +17,54 @@
       <el-table-column prop="title" label="Titulo" />
       <el-table-column prop="author.name" label="Autor" />
       <el-table-column prop="keywords" label="Palavras Chave" />
+      <el-table-column prop="id" label="Ações" width="220">
+        <template slot-scope="scope">
+          <el-tooltip effect="dark" content="Ler" placement="bottom">
+            <el-button plain @click="readBook(scope.$index)" icon="el-icon-reading" />
+          </el-tooltip>
+          <el-tooltip effect="dark" content="Editar" placement="bottom">
+            <el-button plain @click="editBook(scope.$index)" icon="el-icon-edit" />
+          </el-tooltip>
+          <el-tooltip effect="dark" content="Apagar" placement="bottom">
+            <el-button type="danger" plain @click="removeBook(scope.row.id)" icon="el-icon-delete" />
+          </el-tooltip>
+        </template>
+      </el-table-column>
     </el-table>
     <el-dialog
-      :title="activeBook.title"
+      :title="activeModalTitle"
       :visible.sync="visibleBook"
       :center="true"
       width="90%">
-      <span>{{ activeBook.text }}</span>
+      <span>{{ activeModalText }}</span>
+    </el-dialog>
+    <el-dialog
+      :title="editingTitle"
+      :visible.sync="visibleEdit"
+      :center="true"
+      width="90%">
+      <el-form :model="activeBook" :rules="rules" ref="activeBook">
+        <el-form-item label="Nome" prop="title">
+          <el-input v-model="activeBook.title" />
+        </el-form-item>
+        <el-form-item label="Autor" prop="author.name">
+          <el-input v-model="activeBook.author.name" />
+        </el-form-item>
+        <el-form-item label="Palavras Chave" prop="keywords">
+          <el-input v-model="activeBook.keywords" />
+        </el-form-item>
+        <el-form-item label="Texto" prop="text">
+          <el-input rows="8" type="textarea" v-model="activeBook.text" />
+        </el-form-item>
+      </el-form>
+      <span v-if="activeBook.id !== ''" slot="footer">
+        <el-button @click="visibleEdit = false">Cancelar</el-button>
+        <el-button @click="confirmEdition" type="primary">Confirmar</el-button>
+      </span>
+      <span v-else slot="footer">
+        <el-button @click="visibleEdit = false">Cancelar</el-button>
+        <el-button @click="includeBook" type="primary">Confirmar</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -34,47 +77,38 @@ export default {
   data () {
     return {
       searchParam: '',
+      editingTitle: '',
+      activeModalText: '',
+      activeModalTitle: '',
+      visibleEdit: false,
       visibleBook: false,
-      booksList: [
-        // {
-        //   title: 'Teste',
-        //   author: { name: 'Autor' },
-        //   keywords: 'lorem ipsum',
-        //   text: 'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.'
-        // },
-        // {
-        //   title: 'Historia de um tiozinho',
-        //   author: { name: 'Tiozinho do alem' },
-        //   keywords: 'mussum ipsum',
-        //   text: 'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.'
-        // },
-        // {
-        //   title: 'Eu',
-        //   author: { name: 'Minha mae' },
-        //   keywords: '\\o/',
-        //   text: 'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.'
-        // },
-        // {
-        //   title: '50 tons de Valentino',
-        //   author: { name: 'Valentino' },
-        //   keywords: 'lul',
-        //   text: 'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.'
-        // }
-      ],
+      booksList: [],
       filteredBooks: [],
       activeBook: {
         title: '',
-        author: '',
-        text: ''
+        author: { name: '' },
+        keywords: '',
+        text: '',
+        id: ''
+      },
+      rules: {
+        title: [
+          { required: true, message: 'Insira um título para o livro', trigger: 'submit' }
+        ],
+        author: { name: [
+          { required: true, message: 'Insira um autor para o livro', trigger: 'submit' }
+        ] },
+        keywords: [
+          { required: true, message: 'insira pelomenos uma palavra chave', trigger: 'submit' }
+        ],
+        text: [
+          { required: true, message: 'Insira um texto', trigger: 'submit' }
+        ]
       }
     }
   },
-  beforeCreate () {
-    axios
-      .get('http://34.73.84.212/api/v1/books')
-      .then(response => response.data.data)
-      .then(books => (this.booksList = books)(this.filteredBooks = books))
-      .catch(erro => console.log('Deu merda aqui', erro))
+  beforeMount () {
+    this.getBooks()
   },
   watch: {
     searchParam (term) {
@@ -82,10 +116,139 @@ export default {
     }
   },
   methods: {
-    readBook (row) {
-      var index = this.booksList.indexOf(row)
-      this.activeBook.title = this.booksList[index].title + ' - ' + this.booksList[index].author.name
+    getBooks () {
+      axios.get('http://34.73.84.212/api/v1/books')
+        .then(response => response.data.data)
+        .then(books => {
+          this.booksList = books
+          this.filteredBooks = books
+        })
+        .catch(error => {
+          this.$notify({
+            title: 'Ops!',
+            message: 'Houve uma falha no servidor, tente novamente mais tarde.',
+            type: 'error'
+          })
+          console.log(error)
+        })
+    },
+    addBook () {
+      this.editingTitle = 'Adcionar um novo livro'
+      this.activeBook.title = ''
+      this.activeBook.author.name = ''
+      this.activeBook.keywords = ''
+      this.activeBook.text = ''
+      this.activeBook.id = ''
+      this.visibleEdit = true
+    },
+    includeBook () {
+      this.$refs['activeBook'].validate((valid) => {
+        if (valid) {
+          delete this.activeBook.id
+          axios.post('http://34.73.84.212/api/v1/books', this.activeBook)
+            .then(response => {
+              this.$notify({
+                title: 'Yay!',
+                message: 'Livro adcionado com sucesso',
+                type: 'success'
+              })
+              console.log(response)
+              this.visibleEdit = false
+            })
+            .catch(() => {
+              this.$notify({
+                title: 'Ops!',
+                message: 'Houve uma falha no servidor, tente novamente mais tarde',
+                type: 'error'
+              })
+            })
+            .finally(() => {
+              setTimeout(() => {
+                this.getBooks()
+              }, 1000)
+            })
+        } else {
+          return false
+        }
+      })
+    },
+    editBook (index) {
+      this.editingTitle = 'Edição de Livro - ' + this.booksList[index].title
+      this.activeBook.title = this.booksList[index].title
+      this.activeBook.author.name = this.booksList[index].author.name
+      this.activeBook.keywords = this.booksList[index].keywords
       this.activeBook.text = this.booksList[index].text
+      this.activeBook.id = this.booksList[index].id
+      this.visibleEdit = true
+    },
+    confirmEdition () {
+      this.$confirm('Tem certeza que deseja editar este livro?', 'Espere', {
+        confirmButtonText: 'Editar',
+        cancelButtonText: 'Cancelar',
+        type: 'warning',
+        center: true
+      }).then(() => {
+        this.$refs['activeBook'].validate((valid) => {
+          if (valid) {
+            axios.put('http://34.73.84.212/api/v1/books/' + this.activeBook.id, this.activeBook)
+              .then(() => {
+                this.$notify({
+                  title: 'Yay!',
+                  message: 'Livro editado com sucesso',
+                  type: 'success'
+                })
+                this.visibleEdit = false
+              })
+              .catch(() => {
+                this.$notify({
+                  title: 'Ops!',
+                  message: 'Houve uma falha no servidor, tente novamente mais tarde',
+                  type: 'error'
+                })
+              })
+              .finally(() => {
+                setTimeout(() => {
+                  this.getBooks()
+                }, 1000)
+              })
+          } else {
+            return false
+          }
+        })
+      })
+    },
+    removeBook (id) {
+      this.$confirm('Tem certeza que deseja remover este livro?', 'Espere', {
+        confirmButtonText: 'Remover',
+        cancelButtonText: 'Cancelar',
+        type: 'warning',
+        center: true
+      }).then(() => {
+        axios.delete('http://34.73.84.212/api/v1/books/' + id)
+          .then(() => {
+            this.$notify({
+              title: 'Yay!',
+              message: 'Livro removido com sucesso',
+              type: 'success'
+            })
+          })
+          .catch(() => {
+            this.$notify({
+              title: 'Ops!',
+              message: 'Houve uma falha no servidor, tente novamente mais tarde',
+              type: 'error'
+            })
+          })
+          .finally(() => {
+            setTimeout(() => {
+              this.getBooks()
+            }, 1000)
+          })
+      })
+    },
+    readBook (index) {
+      this.activeModalTitle = this.booksList[index].title + ' - ' + this.booksList[index].author.name
+      this.activeModalText = this.booksList[index].text
       this.visibleBook = true
     },
     filterSearch (term) {
@@ -134,5 +297,15 @@ export default {
     border-radius: 8px !important;
     box-shadow: 0px 0px 20px 0px rgba(150, 150, 150, 1);
   }
+  &__add-button {
+    // display: flex;
+    // position: absolute;
+    // top: 20px;
+    // right: 40px;
+    margin-top: 40px;
+  }
+}
+.el-dialog {
+  background-color: #fff !important;
 }
 </style>
