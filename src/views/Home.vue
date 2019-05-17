@@ -85,12 +85,7 @@ export default {
   name: 'home',
   data () {
     return {
-      authors: [
-        { name: 'Machado de Assis', id: 2 },
-        { name: 'Carlos Drummond de Andrade', id: 3 },
-        { name: 'Clarice Lispector', id: 4 },
-        { name: 'Ariano Suassuna', id: 5 }
-      ],
+      authors: [],
       searchParam: '',
       editingTitle: '',
       activeModalText: '',
@@ -122,6 +117,20 @@ export default {
         ]
       }
     }
+  },
+  created () {
+    axios.get('http://34.73.84.212/api/v1/authors')
+      .then(response => {
+        this.authors = response.data.data
+      })
+      .catch(error => {
+        this.$notify({
+          title: 'Ops!',
+          message: 'Houve uma falha no servidor, tente novamente mais tarde.',
+          type: 'error'
+        })
+        console.log(error)
+      })
   },
   beforeMount () {
     this.getBooks()
